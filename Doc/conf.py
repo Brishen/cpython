@@ -15,7 +15,10 @@ sys.path.append(os.path.abspath('includes'))
 
 extensions = ['sphinx.ext.coverage', 'sphinx.ext.doctest',
               'pyspecific', 'c_annotations', 'escape4chm',
-              'asdl_highlight', 'peg_highlight', 'glossary_search']
+              'asdl_highlight', 'peg_highlight']
+
+doc_build = True
+doc_target = 'reference'
 
 doctest_global_setup = '''
 try:
@@ -119,6 +122,7 @@ latex_engine = 'xelatex'
 latex_elements = {
 }
 
+
 # Additional stuff for the LaTeX preamble.
 latex_elements['preamble'] = r'''
 \authoraddress{
@@ -128,10 +132,33 @@ latex_elements['preamble'] = r'''
 \let\Verbatim=\OriginalVerbatim
 \let\endVerbatim=\endOriginalVerbatim
 \setcounter{tocdepth}{2}
+
+\renewenvironment{productionlist}{%
+%  \def\sphinxoptional##1{{\Large[}##1{\Large]}}
+  \def\production##1##2{\\\sphinxcode{\sphinxupquote{##1}}&::=&\sphinxcode{\sphinxupquote{##2}}}%
+  \def\productioncont##1{\\& &\sphinxcode{\sphinxupquote{##1}}}%
+  \parindent=2em
+  \indent
+  \setlength{\LTpre}{0pt}%
+  \setlength{\LTpost}{0pt}%
+  \begin{longtable}[l]{
+@{}
+p{5cm}
+p{0.5cm}
+p{10cm}
+>{\raggedright}p{10cm}
+p{10cm}
+@{}}
+}{%
+  \end{longtable}
+}
 '''
+latex_elements['printindex'] = ''
+latex_elements['transition'] = '\n\n\\bigskip\\hrule\\bigskip\n\n'
+latex_elements['extraclassoptions'] = 'openany'
 
 # The paper size ('letter' or 'a4').
-latex_elements['papersize'] = 'a4'
+latex_elements['papersize'] = 'letter'
 
 # The font size ('10pt', '11pt' or '12pt').
 latex_elements['pointsize'] = '10pt'
@@ -139,36 +166,72 @@ latex_elements['pointsize'] = '10pt'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 _stdauthor = r'Guido van Rossum\\and the Python development team'
-latex_documents = [
-    ('c-api/index', 'c-api.tex',
-     'The Python/C API', _stdauthor, 'manual'),
-    ('distributing/index', 'distributing.tex',
-     'Distributing Python Modules', _stdauthor, 'manual'),
-    ('extending/index', 'extending.tex',
-     'Extending and Embedding Python', _stdauthor, 'manual'),
-    ('installing/index', 'installing.tex',
-     'Installing Python Modules', _stdauthor, 'manual'),
-    ('library/index', 'library.tex',
-     'The Python Library Reference', _stdauthor, 'manual'),
-    ('reference/index', 'reference.tex',
-     'The Python Language Reference', _stdauthor, 'manual'),
-    ('tutorial/index', 'tutorial.tex',
-     'Python Tutorial', _stdauthor, 'manual'),
-    ('using/index', 'using.tex',
-     'Python Setup and Usage', _stdauthor, 'manual'),
-    ('faq/index', 'faq.tex',
-     'Python Frequently Asked Questions', _stdauthor, 'manual'),
-    ('whatsnew/' + version, 'whatsnew.tex',
-     'What\'s New in Python', 'A. M. Kuchling', 'howto'),
-]
-# Collect all HOWTOs individually
-latex_documents.extend(('howto/' + fn[:-4], 'howto-' + fn[:-4] + '.tex',
-                        '', _stdauthor, 'howto')
-                       for fn in os.listdir('howto')
-                       if fn.endswith('.rst') and fn != 'index.rst')
+
+doc_target = os.getenv('DOC_TARGET', doc_target)
+if doc_build:
+    if doc_target == 'basic':
+        latex_documents = [
+            ('library/index-basic', 'library.tex',
+             'The Python Library Reference - Basics', _stdauthor, 'manual')
+        ]
+    if doc_target == 'os':
+        latex_documents = [
+            ('library/index-os', 'library-os.tex',
+             'The Python Library Reference - Filesystem and OS', _stdauthor, 'manual')
+        ]
+    if doc_target == 'reference':
+        latex_documents = [
+            ('reference/index', 'reference.tex',
+             'The Python Language Reference', _stdauthor, 'manual')
+        ]
+    if doc_target == 'tools':
+        latex_documents = [
+            ('library/index-os', 'library-os.tex',
+             'The Python Library Reference - Filesystem and OS', _stdauthor, 'manual')
+        ]
+    if doc_target == 'tutorial':
+        latex_documents = [
+            ('library/index-os', 'library-os.tex',
+             'The Python Library Reference - Filesystem and OS', _stdauthor, 'manual')
+        ]
+    if doc_target == 'c-api':
+        latex_documents = [
+            ('library/index-os', 'library-os.tex',
+             'The Python Library Reference - Filesystem and OS', _stdauthor, 'manual')
+        ]
+
+else:
+    latex_documents = [
+        ('c-api/index', 'c-api.tex',
+         'The Python/C API', _stdauthor, 'manual'),
+        ('distributing/index', 'distributing.tex',
+         'Distributing Python Modules', _stdauthor, 'manual'),
+        ('extending/index', 'extending.tex',
+         'Extending and Embedding Python', _stdauthor, 'manual'),
+        ('installing/index', 'installing.tex',
+         'Installing Python Modules', _stdauthor, 'manual'),
+        ('library/index', 'library.tex',
+         'The Python Library Reference', _stdauthor, 'manual'),
+        ('reference/index', 'reference.tex',
+         'The Python Language Reference', _stdauthor, 'manual'),
+        ('tutorial/index', 'tutorial.tex',
+         'Python Tutorial', _stdauthor, 'manual'),
+        ('using/index', 'using.tex',
+         'Python Setup and Usage', _stdauthor, 'manual'),
+        ('faq/index', 'faq.tex',
+         'Python Frequently Asked Questions', _stdauthor, 'manual'),
+        ('whatsnew/' + version, 'whatsnew.tex',
+         'What\'s New in Python', 'A. M. Kuchling', 'howto'),
+    ]
+    # Collect all HOWTOs individually
+    latex_documents.extend(('howto/' + fn[:-4], 'howto-' + fn[:-4] + '.tex',
+                            '', _stdauthor, 'howto')
+                           for fn in os.listdir('howto')
+                           if fn.endswith('.rst') and fn != 'index.rst')
 
 # Documents to append as an appendix to all manuals.
-latex_appendices = ['glossary', 'about', 'license', 'copyright']
+#latex_appendices = ['glossary', 'about', 'license', 'copyright']
+latex_appendices = ['glossary', 'license', 'copyright']
 
 # Options for Epub output
 # -----------------------
@@ -237,5 +300,3 @@ c_allow_pre_v3 = True
 # bpo-40204: Disable warnings on Sphinx 2 syntax of the C domain since the
 # documentation is built with -W (warnings treated as errors).
 c_warn_on_allowed_pre_v3 = False
-
-strip_signature_backslash = True
